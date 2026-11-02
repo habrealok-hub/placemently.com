@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placemently.com — Campus Placement & ATS Resume Analyzer</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN for interactive visual analysis -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- PDF.js CDN for client-side PDF parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              950: '#052e16',
+            },
+            mint: {
+              50: '#f2fbf7',
+              100: '#e1f7ec',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f6fcf8;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+    }
+    .hero-gradient {
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 45%, #047857 85%, #059669 100%);
+    }
+    .soft-green-mesh {
+      background: radial-gradient(circle at 10% 20%, rgba(187, 247, 208, 0.4) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(167, 243, 208, 0.35) 0%, transparent 40%);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #86efac;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #22c55e;
+    }
+    .dragover-active {
+      border-color: #16a34a !important;
+      background-color: #dcfce7 !important;
+      transform: scale(1.01);
+    }
+    .modal-backdrop-blur {
+      backdrop-filter: blur(10px);
+      background-color: rgba(6, 46, 22, 0.65);
+    }
+    @keyframes modalSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .modal-animate-in {
+      animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+
+<body class="text-slate-800 min-h-screen flex flex-col soft-green-mesh selection:bg-emerald-200 selection:text-emerald-900">
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- NAVIGATION BAR -->
+  <nav class="bg-white/95 backdrop-blur-md border-b border-emerald-100 sticky top-0 z-40 shadow-sm transition-all duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        
+        <!-- Brand Logo (Placemently.com) -->
+        <a href="#" class="flex items-center space-x-3 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-700 via-emerald-600 to-teal-500 flex items-center justify-center text-white font-black text-xl shadow-md shadow-emerald-200 group-hover:scale-105 transition-transform">
+            <i class="fa-solid fa-leaf text-base"></i>
+          </div>
+          <div>
+            <span class="text-xl font-black tracking-tight text-slate-900">Placemently<span class="text-emerald-600">.com</span></span>
+            <p class="text-[10px] text-emerald-800 font-semibold tracking-wider uppercase">Campus Placement &amp; Resume Analyzer</p>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden lg:flex items-center space-x-6 text-sm font-semibold text-slate-600">
+          <a href="#analyzer" class="hover:text-emerald-600 transition flex items-center gap-1.5 py-1">
+            <i class="fa-solid fa-file-waveform text-emerald-500"></i> Resume Analyzer
+          </a>
+          <a href="#reverse-matching" class="hover:text-emerald-600 transition flex items-center gap-1.5 py-1">
+            <i class="fa-solid fa-briefcase text-emerald-600"></i> Job Recommender
+          </a>
+          <a href="#star-tuner" class="hover:text-emerald-600 transition flex items-center gap-1.5 py-1">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> STAR Tuner
+          </a>
+          <a href="#skills-radar-section" class="hover:text-emerald-600 transition flex items-center gap-1.5 py-1">
+            <i class="fa-solid fa-chart-radar text-teal-600"></i> Skill Radar
+          </a>
+          <a href="#student-portal-section" class="hover:text-emerald-600 transition flex items-center gap-1.5 py-1">
+            <i class="fa-solid fa-id-card-clip text-emerald-600"></i> Student Portal
+          </a>
+        </div>
+
+        <!-- Action Buttons & Student Auth Trigger -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          
+          <!-- Student Login / Profile Button Container -->
+          <div id="nav-student-container">
+            <!-- Dynamically populated by JS (Login button vs Student Profile Pill) -->
+          </div>
+
+          <button onclick="loadSampleData()" class="hidden sm:flex text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold px-3 py-2 rounded-xl transition border border-emerald-200 items-center gap-1.5 shadow-xs">
+            <i class="fa-solid fa-bolt text-emerald-600"></i> Demo Sample
+          </button>
+          
+          <a href="#analyzer" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 sm:px-4 py-2 rounded-xl transition shadow-md shadow-emerald-600/20 hover:shadow-lg flex items-center gap-1.5">
+            <i class="fa-solid fa-upload"></i> <span class="hidden sm:inline">Analyze</span> Now
+          </a>
+
+          <!-- Mobile Hamburger Button -->
+          <button onclick="toggleMobileMenu()" id="mobile-menu-btn" class="lg:hidden p-2 rounded-xl text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 focus:outline-none transition" aria-label="Toggle Navigation">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Mobile Drawer Menu -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-emerald-100 px-4 pt-2 pb-4 space-y-2 text-sm font-semibold text-slate-700">
+      <div id="mobile-student-container" class="pb-2 mb-2 border-b border-slate-100">
+        <!-- Populated by JS -->
+      </div>
+      <a href="#analyzer" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition flex items-center gap-2">
+        <i class="fa-solid fa-file-waveform text-emerald-500 w-5"></i> Resume Analyzer
+      </a>
+      <a href="#reverse-matching" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition flex items-center gap-2">
+        <i class="fa-solid fa-briefcase text-emerald-600 w-5"></i> Job Recommender
+      </a>
+      <a href="#star-tuner" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition flex items-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles text-amber-500 w-5"></i> STAR Tuner
+      </a>
+      <a href="#skills-radar-section" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition flex items-center gap-2">
+        <i class="fa-solid fa-chart-radar text-teal-600 w-5"></i> Skill Radar
+      </a>
+      <a href="#student-portal-section" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition flex items-center gap-2">
+        <i class="fa-solid fa-id-card-clip text-emerald-600 w-5"></i> Student Portal Dashboard
+      </a>
+      <button onclick="loadSampleData(); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded-lg bg-emerald-50 text-emerald-800 font-bold hover:bg-emerald-100 transition flex items-center gap-2">
+        <i class="fa-solid fa-bolt text-emerald-600 w-5"></i> Load Demo Sample Data
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION (Concise & Light-Green Themed) -->
+  <header class="hero-gradient text-white py-12 sm:py-14 px-4 sm:px-6 lg:px-8 relative overflow-hidden shadow-md">
+    <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute left-1/3 -top-20 w-72 h-72 rounded-full bg-teal-300/10 blur-2xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="max-w-3xl">
+        
+        <!-- Live Status Pill & Student Quick Welcome -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-semibold shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Placemently.com &bull; Client-Side Placement &amp; ATS Engine
+          </div>
+          <span id="hero-student-greeting" class="hidden inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-emerald-100 text-xs font-medium border border-white/15">
+            <i class="fa-solid fa-circle-user text-emerald-300"></i>
+            <span id="hero-student-name">Welcome!</span>
+          </span>
+        </div>
+
+        <!-- Concise Headline -->
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
+          Smart ATS Resume Audit <br class="hidden sm:inline">
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-teal-100 to-green-300">
+            &amp; Placement Role Matching
+          </span>
+        </h1>
+
+        <!-- Concise Description -->
+        <p class="mt-3.5 text-base sm:text-lg text-emerald-100/90 leading-relaxed font-normal">
+          Instantly evaluate your resume against campus drive criteria, pinpoint missing keywords, and match live roles aligned with your technical strengths on <strong>Placemently.com</strong>.
+        </p>
+
+        <!-- Feature Pills & Portal CTA -->
+        <div class="mt-6 flex flex-wrap items-center gap-2.5 text-xs font-semibold text-emerald-100">
+          <span class="bg-emerald-800/60 px-3 py-1.5 rounded-xl backdrop-blur-sm border border-emerald-600/40 flex items-center gap-1.5 shadow-xs">
+            <i class="fa-solid fa-shield-halved text-emerald-300"></i> 100% Private Client-Side
+          </span>
+          <span class="bg-emerald-800/60 px-3 py-1.5 rounded-xl backdrop-blur-sm border border-emerald-600/40 flex items-center gap-1.5 shadow-xs">
+            <i class="fa-solid fa-chart-pie text-teal-300"></i> Fresher-Calibrated ATS Index
+          </span>
+          <span class="bg-emerald-800/60 px-3 py-1.5 rounded-xl backdrop-blur-sm border border-emerald-600/40 flex items-center gap-1.5 shadow-xs">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> STAR Bullet Upgrader
+          </span>
+          <button onclick="openStudentLoginModal()" class="bg-white/15 hover:bg-white/25 px-3.5 py-1.5 rounded-xl backdrop-blur-sm border border-white/20 text-white font-bold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-user-graduate text-emerald-200"></i> Student Portal Access &rarr;
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- STUDENT PORTAL DASHBOARD SECTION -->
+  <section id="student-portal-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-5 relative z-20 w-full">
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 sm:p-6 transition hover:border-emerald-200">
+      
+      <!-- LOGGED OUT VIEW -->
+      <div id="portal-logged-out" class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="flex items-start sm:items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold text-slate-900">Placemently.com Student Placement Portal</h3>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">College Drive Ready</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Sign in to save your ATS score reports, track target campus roles, and sync your academic resume profile.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
+          <button onclick="quickDemoLogin()" class="flex-1 sm:flex-none text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2.5 rounded-xl border border-slate-200 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-bolt text-amber-500"></i> One-Click Demo
+          </button>
+          <button onclick="openStudentLoginModal()" class="flex-1 sm:flex-none text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Student Sign In
+          </button>
+        </div>
+      </div>
+
+      <!-- LOGGED IN VIEW -->
+      <div id="portal-logged-in" class="hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-emerald-50">
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center text-xl font-bold shrink-0 shadow-md shadow-emerald-200">
+              <span id="portal-avatar-initial">A</span>
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 id="portal-student-name" class="text-base font-extrabold text-slate-900">Alok Habre</h3>
+                <span id="portal-student-prn" class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full font-mono">PRN: 25183013</span>
+                <span class="text-[10px] bg-teal-50 text-teal-700 font-bold px-2 py-0.5 rounded-full border border-teal-200">Verified S.E. IT Student</span>
+              </div>
+              <p id="portal-student-meta" class="text-xs text-slate-500 mt-0.5">Department of Information Technology &bull; Target: Junior Backend Engineer</p>
+            </div>
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <button onclick="loadStudentProfileResume()" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold px-3.5 py-2 rounded-xl border border-emerald-200 transition flex items-center gap-1.5 shadow-xs">
+              <i class="fa-solid fa-file-arrow-up text-emerald-600"></i> Load My Stored Resume
+            </button>
+            <button onclick="logoutStudent()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-2 rounded-xl border border-rose-200 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+            </button>
+          </div>
+        </div>
+
+        <!-- Student Quick Stats Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-1">
+          <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
+            <span class="text-[10px] uppercase font-bold text-emerald-800 tracking-wider">Placement Status</span>
+            <p class="text-sm font-extrabold text-slate-800 mt-0.5">Active Campus Drive</p>
+          </div>
+          <div class="p-3 bg-teal-50/50 rounded-xl border border-teal-100">
+            <span class="text-[10px] uppercase font-bold text-teal-800 tracking-wider">Target Domain</span>
+            <p id="portal-stat-domain" class="text-sm font-extrabold text-slate-800 mt-0.5">Backend &amp; APIs</p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-[10px] uppercase font-bold text-slate-600 tracking-wider">Last Audit Score</span>
+            <p id="portal-stat-score" class="text-sm font-extrabold text-emerald-700 mt-0.5">Not Analyzed Yet</p>
+          </div>
+          <div class="p-3 bg-amber-50/50 rounded-xl border border-amber-200">
+            <span class="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Placemently Sync</span>
+            <p class="text-sm font-extrabold text-slate-800 mt-0.5">Local Storage Active</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MAIN APPLICATION SECTION -->
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 w-full" id="analyzer">
+
+    <!-- INPUTS CONTAINER: TWO COLUMNS (RESUME + JOB DESCRIPTION) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8">
+
+      <!-- LEFT CARD: RESUME INGESTION -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-emerald-100/80 flex flex-col justify-between transition hover:border-emerald-200">
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shadow-xs">1</span>
+              Student Resume Input
+            </h2>
+            <span class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
+              PDF or Text
+            </span>
+          </div>
+
+          <!-- Drag and Drop Box -->
+          <div id="drop-zone" class="border-2 border-dashed border-emerald-200 hover:border-emerald-500 rounded-2xl p-5 sm:p-6 text-center cursor-pointer transition-all bg-emerald-50/40 hover:bg-emerald-50/70 mb-4 group">
+            <input type="file" id="resume-file" accept=".pdf,.txt" class="hidden" onchange="handleFileUpload(event)">
+            <label for="resume-file" class="cursor-pointer flex flex-col items-center">
+              <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+              </div>
+              <p class="text-sm font-bold text-slate-800">Click to upload or drag &amp; drop Resume (PDF/TXT)</p>
+              <p class="text-xs text-slate-500 mt-1">Processed locally in your browser. Zero server transmission.</p>
+              <span id="file-status" class="mt-2 text-xs font-bold text-emerald-700"></span>
+            </label>
+          </div>
+
+          <!-- Textarea with Live Counters -->
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <div class="flex items-center gap-2">
+                <label for="resume-text" class="text-xs font-bold text-slate-600 uppercase tracking-wider">Resume Text:</label>
+                <span id="resume-stats-pill" class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">0 words | 0 skills</span>
+              </div>
+              <button type="button" onclick="clearResumeText()" class="text-xs text-slate-400 hover:text-rose-600 font-medium transition flex items-center gap-1">
+                <i class="fa-solid fa-trash-can text-[10px]"></i> Clear
+              </button>
+            </div>
+            <textarea id="resume-text" rows="10" placeholder="Paste your resume content here, or upload your PDF above..."
+              class="w-full text-xs font-mono p-3.5 bg-slate-50/80 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white focus:outline-none text-slate-700 leading-relaxed custom-scrollbar transition"></textarea>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 pt-3 border-t border-slate-100">
+          <span class="flex items-center gap-1 text-[11px]"><i class="fa-solid fa-circle-check text-emerald-500"></i> Supports Standard 1-2 Page Resumes</span>
+          <button type="button" onclick="loadSampleResume()" class="text-emerald-700 font-bold hover:text-emerald-800 hover:underline flex items-center gap-1.5 transition">
+            <i class="fa-regular fa-file-lines"></i> Insert Sample Tech Resume
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT CARD: TARGET JOB DESCRIPTION -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-emerald-100/80 flex flex-col justify-between transition hover:border-emerald-200">
+        <div>
+          <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm shadow-xs">2</span>
+              Target Job Profile (JD)
+            </h2>
+            <div class="flex items-center gap-1.5">
+              <label for="job-presets" class="text-xs text-slate-500 font-medium">Preset:</label>
+              <select id="job-presets" onchange="selectPresetJob(this.value)" class="text-xs bg-emerald-50/60 border border-emerald-200 rounded-xl px-2.5 py-1 text-emerald-900 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <option value="backend">Backend Engineer (Python/API)</option>
+                <option value="sde">Full-Stack SDE (React/Node)</option>
+                <option value="data">Data Analyst (SQL/Python)</option>
+                <option value="cloud">Cloud &amp; DevOps (AWS/Docker)</option>
+                <option value="qa">QA Automation (Selenium/API)</option>
+                <option value="custom">-- Custom Job Profile --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick Preset Chips -->
+          <div class="flex flex-wrap gap-1.5 mb-3">
+            <button type="button" onclick="quickSelectPreset('backend')" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition font-medium">Backend</button>
+            <button type="button" onclick="quickSelectPreset('sde')" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition font-medium">Full-Stack</button>
+            <button type="button" onclick="quickSelectPreset('data')" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition font-medium">Data Analyst</button>
+            <button type="button" onclick="quickSelectPreset('cloud')" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition font-medium">Cloud/DevOps</button>
+            <button type="button" onclick="quickSelectPreset('qa')" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition font-medium">QA Automation</button>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label for="job-text" class="text-xs font-bold text-slate-600 uppercase tracking-wider">Job Criteria &amp; Requirements:</label>
+              <button type="button" onclick="clearJobText()" class="text-xs text-slate-400 hover:text-rose-600 font-medium transition flex items-center gap-1">
+                <i class="fa-solid fa-trash-can text-[10px]"></i> Clear
+              </button>
+            </div>
+            <textarea id="job-text" rows="12" placeholder="Paste the target job description or company criteria here..."
+              class="w-full text-xs font-mono p-3.5 bg-slate-50/80 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white focus:outline-none text-slate-700 leading-relaxed custom-scrollbar transition"></textarea>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+          <span>Automatically extracts hard skills, frameworks &amp; competencies</span>
+          <span class="text-[11px] text-emerald-700 font-medium"><i class="fa-solid fa-bolt text-amber-500"></i> Instant Tokenizer</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION TRIGGER BANNER -->
+    <div class="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 p-5 sm:p-6 rounded-2xl shadow-lg shadow-emerald-900/10 mb-10 text-white flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div>
+        <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2">
+          <i class="fa-solid fa-microchip text-emerald-300"></i> Run Multi-Factor Placement &amp; ATS Compatibility Analysis
+        </h3>
+        <p class="text-xs text-emerald-100/90 mt-1">
+          Executes Cosine Similarity matching, missing skill set-difference, and reverse job recommendations on Placemently.com.
+        </p>
+      </div>
+      <button id="analyze-btn" onclick="runAnalysis()" class="w-full sm:w-auto px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-extrabold rounded-xl text-sm transition-all transform hover:scale-[1.02] active:scale-95 shadow-md flex items-center justify-center gap-2 shrink-0">
+        <i class="fa-solid fa-magnifying-glass-chart text-emerald-950"></i> Analyze Resume Match
+      </button>
+    </div>
+
+    <!-- ANALYSIS RESULTS CONTAINER (HIDDEN UNTIL ANALYZED) -->
+    <div id="results-container" class="space-y-8 hidden">
+
+      <!-- SECTION 1: ATS SCORE BANNER & SUB-METRICS -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+
+        <!-- SCORE GAUGE CARD -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 flex flex-col items-center justify-center text-center">
+          <p class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">Overall ATS Match Score</p>
+          <div class="relative w-36 h-36 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <path class="text-emerald-50" stroke-width="3.8" stroke="currentColor" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+              <path id="score-circle" class="text-emerald-600 transition-all duration-1000 ease-out" stroke-dasharray="0, 100" stroke-width="3.8" stroke-linecap="round" stroke="currentColor" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span id="ats-score-number" class="text-4xl font-black text-slate-900">0%</span>
+              <span id="match-verdict" class="text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full mt-1 bg-emerald-50 text-emerald-800">Checking...</span>
+            </div>
+          </div>
+          <p id="match-summary-text" class="text-xs text-slate-600 mt-3 font-medium"></p>
+        </div>
+
+        <!-- BREAKDOWN METRIC 1: SKILLS MATCH -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-600">Technical Skills Match</span>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md">40% Weight</span>
+            </div>
+            <p id="skills-score-val" class="text-2xl font-black text-slate-900">0%</p>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full mt-2.5 overflow-hidden">
+              <div id="skills-bar" class="bg-emerald-600 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-3">Compares languages, frameworks, developer tools, and databases.</p>
+        </div>
+
+        <!-- BREAKDOWN METRIC 2: PROJECTS & INTERNSHIPS -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-600">Projects &amp; Application</span>
+              <span class="text-[10px] bg-teal-100 text-teal-800 font-bold px-2 py-0.5 rounded-md">35% Weight</span>
+            </div>
+            <p id="projects-score-val" class="text-2xl font-black text-slate-900">0%</p>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full mt-2.5 overflow-hidden">
+              <div id="projects-bar" class="bg-teal-600 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-3">Evaluates academic projects, GitHub links, and practical implementation.</p>
+        </div>
+
+        <!-- BREAKDOWN METRIC 3: EDUCATION & FORMAT -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-600">Education &amp; Formatting</span>
+              <span class="text-[10px] bg-mint-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md">25% Weight</span>
+            </div>
+            <p id="format-score-val" class="text-2xl font-black text-slate-900">0%</p>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full mt-2.5 overflow-hidden">
+              <div id="format-bar" class="bg-emerald-500 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-3">Checks standard headings, degree mention, contact details, and text readability.</p>
+        </div>
+
+      </div>
+
+      <!-- SECTION 2: REVERSE SKILL-TO-JOB RECOMMENDER -->
+      <div id="reverse-matching" class="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-xl border border-emerald-900/60">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
+              <i class="fa-solid fa-crown text-amber-400"></i> STANDOUT FEATURE
+            </span>
+            <h3 class="text-2xl font-black mt-2 tracking-tight">
+              Reverse Skill-to-Job Recommender
+            </h3>
+            <p class="text-xs text-slate-300 mt-1">
+              Never get stuck on a rejection. We scanned your extracted skills across all live campus roles to discover your best fit:
+            </p>
+          </div>
+          <button onclick="recalculateAllRoles()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-arrows-rotate"></i> Re-Scan All Campus Roles
+          </button>
+        </div>
+
+        <!-- ROLE CARDS GRID -->
+        <div id="role-recommendations-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- SECTION 3: SKILL GAP DIAGNOSTICS (MATCHED VS MISSING CHIPS + LIVE FILTER) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+
+        <!-- MATCHED SKILLS CARD -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-emerald-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+              Matched Technical Skills (<span id="matched-count">0</span>)
+            </h3>
+            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full">
+              Found in Resume
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">
+            These keywords match the target job criteria and boost your ranking:
+          </p>
+
+          <!-- Interactive Search Filter -->
+          <div class="mb-3">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+              <input type="text" id="filter-matched" placeholder="Filter matched skills..." oninput="filterSkills('matched')"
+                class="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+          </div>
+
+          <div id="matched-skills-chips" class="flex flex-wrap gap-2 min-h-[70px] max-h-56 overflow-y-auto custom-scrollbar p-1">
+            <!-- Chips populated by JavaScript -->
+          </div>
+        </div>
+
+        <!-- MISSING SKILLS CARD -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-rose-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-rose-500 text-lg"></i>
+              Missing Critical Skills (<span id="missing-count">0</span>)
+            </h3>
+            <span class="text-xs bg-rose-50 text-rose-700 font-bold px-2.5 py-0.5 rounded-full border border-rose-200">
+              Action Required
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">
+            Click any missing skill below to auto-tune a project bullet point for it!
+          </p>
+
+          <!-- Interactive Search Filter -->
+          <div class="mb-3">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+              <input type="text" id="filter-missing" placeholder="Filter missing skills..." oninput="filterSkills('missing')"
+                class="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-rose-500">
+            </div>
+          </div>
+
+          <div id="missing-skills-chips" class="flex flex-wrap gap-2 min-h-[70px] max-h-56 overflow-y-auto custom-scrollbar p-1">
+            <!-- Chips populated by JavaScript -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SECTION 4: INTERACTIVE SKILLS RADAR CHART BREAKDOWN -->
+      <section id="skills-radar-section" class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-emerald-100">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-emerald-600"></i> Competency Readiness Breakdown
+            </h3>
+            <p class="text-xs text-slate-500 mt-1">Multi-dimensional analysis comparing your resume against campus requirements across core CS domains.</p>
+          </div>
+          <span class="text-xs bg-emerald-50 text-emerald-800 font-semibold px-3 py-1 rounded-full border border-emerald-200">
+            Domain Readiness
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div class="relative max-w-sm mx-auto w-full h-72">
+            <canvas id="skillsRadarChart"></canvas>
+          </div>
+
+          <div class="space-y-3.5">
+            <div>
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span class="text-slate-700">1. Languages (Python, Java, C++, JS)</span>
+                <span id="domain-score-lang" class="text-emerald-700">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="domain-bar-lang" class="bg-emerald-500 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span class="text-slate-700">2. Databases &amp; SQL (MySQL, Mongo, Postgres)</span>
+                <span id="domain-score-db" class="text-emerald-700">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="domain-bar-db" class="bg-emerald-600 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span class="text-slate-700">3. Web &amp; Frameworks (React, Node, Express, APIs)</span>
+                <span id="domain-score-web" class="text-teal-700">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="domain-bar-web" class="bg-teal-500 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span class="text-slate-700">4. DevOps &amp; Tools (Git, Linux, Docker, AWS)</span>
+                <span id="domain-score-tools" class="text-emerald-700">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="domain-bar-tools" class="bg-emerald-700 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span class="text-slate-700">5. CS Fundamentals (DSA, OOP, System Design)</span>
+                <span id="domain-score-cs" class="text-teal-700">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="domain-bar-cs" class="bg-teal-600 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: CONTEXTUAL PROJECT-SKILL BRIDGE & STAR BULLET TUNER -->
+      <div id="star-tuner" class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+
+        <!-- CONTEXTUAL PROJECT-SKILL BRIDGE -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-emerald-100 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                <i class="fa-solid fa-code-branch"></i>
+              </span>
+              <h3 class="text-base font-bold text-slate-900">Contextual Project-Skill Bridge</h3>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">
+              Where can you add your missing skills? Our engine scans your academic projects and provides concrete implementation suggestions:
+            </p>
+
+            <div id="project-bridge-suggestions" class="space-y-3">
+              <!-- Populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- INTERACTIVE STAR BULLET TUNER -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-emerald-100 flex flex-col justify-between">
+          <div>
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </span>
+                <h3 class="text-base font-bold text-slate-900">STAR-Method Bullet Point Upgrader</h3>
+              </div>
+              <span class="text-[10px] bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded border border-amber-200">
+                Situation &bull; Task &bull; Action &bull; Result
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">
+              Transform passive resume bullets into high-impact, quantifiable statements for recruiters:
+            </p>
+
+            <div class="space-y-3">
+              <div>
+                <label for="raw-bullet" class="text-[11px] font-bold text-slate-600 uppercase">Input Weak Bullet Point:</label>
+                <input id="raw-bullet" type="text" value="Did database work and wrote queries in SQL for patient records."
+                  class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:bg-white focus:outline-none text-slate-700 mt-1 transition">
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <button type="button" onclick="upgradeBulletPoint()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow flex items-center gap-1.5">
+                  <i class="fa-solid fa-bolt"></i> Upgrade with STAR Method
+                </button>
+                <button type="button" onclick="loadSampleWeakBullet()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl text-xs transition border border-slate-200">
+                  Try Sample Bullet
+                </button>
+              </div>
+
+              <!-- Output Box with Copy Button -->
+              <div class="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl relative group">
+                <div class="flex justify-between items-center mb-1">
+                  <p class="text-[11px] font-bold text-emerald-900 flex items-center gap-1">
+                    <i class="fa-solid fa-sparkles text-emerald-600"></i> Recruiter-Ready STAR Statement:
+                  </p>
+                  <button type="button" onclick="copyUpgradedBullet()" class="text-xs bg-white text-emerald-700 hover:bg-emerald-600 hover:text-white px-2 py-1 rounded-md border border-emerald-200 transition font-medium flex items-center gap-1 shadow-xs">
+                    <i class="fa-regular fa-copy"></i> Copy
+                  </button>
+                </div>
+                <p id="upgraded-bullet-text" class="text-xs text-slate-800 font-medium leading-relaxed">
+                  "Architected relational MySQL database schemas with indexed queries across 10,000+ patient records, reducing search response latency by 35%."
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-[10px] text-slate-400 mt-3 pt-2 border-t border-slate-100">
+            Tip: Recruiters prioritize measurable impact (%, numbers, scale) and active verbs (Architected, Engineered, Developed).
+          </p>
+        </div>
+
+      </div>
+
+      <!-- SECTION 6: READABILITY & ACTION AUDIT -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-emerald-100">
+        <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-clipboard-check text-emerald-600"></i>
+          Resume Formatting &amp; Structural Checklist
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" id="checklist-container">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- SECTION 7: ACTIONS & EXPORT BAR -->
+      <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <button onclick="copyFullReport()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow flex items-center gap-2">
+          <i class="fa-regular fa-clipboard"></i> Copy Summary to Clipboard
+        </button>
+        <button onclick="window.print()" class="px-5 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition shadow flex items-center gap-2">
+          <i class="fa-solid fa-print"></i> Print / Save PDF Report
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- STUDENT LOGIN & REGISTRATION FIRST-LAYER POPUP MODAL -->
+  <div id="student-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur transition-all duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl border border-emerald-100 w-full max-w-md overflow-hidden relative modal-animate-in" id="modal-card">
+      
+      <!-- Modal Header (Placemently.com Layer) -->
+      <div class="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 p-6 text-white relative">
+        <button onclick="closeStudentLoginModal()" title="Close and explore Placemently.com" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+        <div class="flex items-center gap-2.5 mb-1.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-400/20 flex items-center justify-center text-emerald-300 text-sm">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <span class="text-xs uppercase font-extrabold tracking-wider text-emerald-300">Placemently.com Gateway</span>
+        </div>
+        <h3 class="text-2xl font-black tracking-tight">Student Portal Access</h3>
+        <p class="text-xs text-emerald-100/90 mt-1">Sign in or create your account to unlock personalized ATS scoring, track campus drives, and save resumes.</p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="flex border-b border-emerald-100 bg-emerald-50/40 text-xs font-bold text-slate-600">
+        <button id="tab-login-btn" onclick="switchModalTab('login')" class="flex-1 py-3 text-center border-b-2 border-emerald-600 text-emerald-800 bg-white transition">
+          <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> Student Sign In
+        </button>
+        <button id="tab-register-btn" onclick="switchModalTab('register')" class="flex-1 py-3 text-center border-b-2 border-transparent hover:text-emerald-700 transition">
+          <i class="fa-solid fa-user-plus mr-1"></i> New Registration
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6">
+        
+        <!-- Quick Demo Credentials Callout -->
+        <div class="mb-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+          <div class="text-[11px] text-emerald-900">
+            <span class="font-bold">Fast-Track Demo:</span> Instant S.E. IT Student Profile
+          </div>
+          <button type="button" onclick="quickDemoLogin()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg transition shadow-xs flex items-center gap-1">
+            <i class="fa-solid fa-bolt text-yellow-300"></i> Auto Login
+          </button>
+        </div>
+
+        <!-- SIGN IN FORM -->
+        <form id="form-login" onsubmit="handleStudentLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">College PRN / Roll No / Email</label>
+            <div class="relative">
+              <i class="fa-solid fa-id-badge absolute left-3 top-3 text-slate-400 text-xs"></i>
+              <input type="text" id="login-identifier" value="25183013" required placeholder="e.g. 25183013 or student@college.edu"
+                class="w-full text-xs pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white bg-slate-50">
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-bold text-slate-700 uppercase">Portal Password</label>
+              <a href="javascript:void(0)" onclick="showToast('Password reset link sent to registered email.', 'info')" class="text-[11px] text-emerald-700 font-semibold hover:underline">Forgot?</a>
+            </div>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-400 text-xs"></i>
+              <input type="password" id="login-password" value="student123" required placeholder="••••••••"
+                class="w-full text-xs pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white bg-slate-50">
+            </div>
+          </div>
+
+          <div class="flex items-center">
+            <input type="checkbox" id="login-remember" checked class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+            <label for="login-remember" class="ml-2 text-xs text-slate-600">Remember my session on Placemently.com</label>
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In to Placemently.com
+          </button>
+        </form>
+
+        <!-- REGISTRATION FORM -->
+        <form id="form-register" onsubmit="handleStudentRegister(event)" class="space-y-3.5 hidden">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name</label>
+            <input type="text" id="reg-name" required placeholder="e.g. Alok Habre"
+              class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">PRN / Roll No</label>
+              <input type="text" id="reg-prn" required placeholder="25183013"
+                class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Class / Year</label>
+              <select id="reg-class" class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-medium">
+                <option value="S.E. IT - Class B">S.E. IT (Class B)</option>
+                <option value="T.E. IT - Class B">T.E. IT</option>
+                <option value="B.E. IT">B.E. IT</option>
+                <option value="S.E. Comp">S.E. Computer</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">College Email Address</label>
+            <input type="email" id="reg-email" required placeholder="student@college.edu"
+              class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Preferred Target Role</label>
+            <select id="reg-role" class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-medium">
+              <option value="backend">Junior Backend Engineer (Python/API)</option>
+              <option value="sde">Full-Stack SDE (React/Node)</option>
+              <option value="data">Data Analyst &amp; BI Specialist</option>
+              <option value="cloud">Cloud &amp; DevOps Associate</option>
+              <option value="qa">QA Automation Engineer</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Create Password</label>
+            <input type="password" id="reg-password" required placeholder="••••••••"
+              class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 mt-2">
+            <i class="fa-solid fa-user-plus"></i> Create Placemently.com Account
+          </button>
+        </form>
+
+        <!-- Continue as Guest Gateway Footer -->
+        <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+          <button type="button" onclick="closeStudentLoginModal()" class="text-xs text-slate-500 hover:text-emerald-700 font-semibold transition inline-flex items-center gap-1">
+            <span>Continue as Guest to Placemently.com</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-950 text-slate-400 py-8 border-t border-emerald-950 text-center text-xs mt-12">
+    <div class="max-w-7xl mx-auto px-4 space-y-2">
+      <div class="flex items-center justify-center space-x-2">
+        <div class="w-6 h-6 rounded-lg bg-emerald-700 flex items-center justify-center text-white text-xs font-bold">
+          <i class="fa-solid fa-leaf text-[10px]"></i>
+        </div>
+        <p class="font-bold text-slate-200">Placemently.com — Campus Placement &amp; Resume Analyzer</p>
+      </div>
+      <p class="text-slate-500 text-[11px]">Helping college students optimize their resumes for campus recruitment drives with transparent NLP scoring on Placemently.com.</p>
+    </div>
+  </footer>
+
+  <!-- FLOATING ACTION BUTTON (MOBILE) -->
+  <button id="mobile-fab" onclick="scrollToAnalyzer()" class="fixed bottom-6 right-6 lg:hidden z-30 w-12 h-12 rounded-full bg-emerald-600 text-white shadow-lg flex items-center justify-center text-lg active:scale-95 transition">
+    <i class="fa-solid fa-magnifying-glass-chart"></i>
+  </button>
+
+  <!-- JAVASCRIPT LOGIC & NLP ENGINE -->
+  <script>
+    // Initialize PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // Comprehensive Technical Skill Taxonomy
+    const SKILLS_TAXONOMY = [
+      "python", "java", "c++", "c", "javascript", "typescript", "html", "css", "sql", "nosql",
+      "mongodb", "mysql", "postgresql", "react", "react.js", "angular", "vue", "node", "node.js",
+      "express", "flask", "django", "fastapi", "spring", "spring boot", "rest api", "graphql",
+      "docker", "kubernetes", "aws", "azure", "gcp", "git", "github", "ci/cd", "linux", "bash",
+      "machine learning", "deep learning", "nlp", "computer vision", "pandas", "numpy", "scikit-learn",
+      "tensorflow", "pytorch", "tableau", "power bi", "excel", "selenium", "postman", "jest",
+      "data structures", "algorithms", "oop", "system design", "agile", "scrum", "devops",
+      "microservices", "redis", "kafka", "problem solving", "communication", "teamwork"
+    ];
+
+    // Domain Taxonomy for Radar Chart
+    const DOMAIN_MAP = {
+      languages: ["python", "java", "c++", "c", "javascript", "typescript"],
+      databases: ["sql", "nosql", "mongodb", "mysql", "postgresql", "redis"],
+      web: ["html", "css", "react", "react.js", "angular", "vue", "node", "node.js", "express", "flask", "django", "fastapi", "rest api", "graphql"],
+      tools: ["git", "github", "docker", "kubernetes", "aws", "azure", "gcp", "linux", "bash", "ci/cd", "devops"],
+      cs: ["data structures", "algorithms", "oop", "system design", "problem solving", "agile", "scrum"]
+    };
+
+    // Preset Job Profiles
+    const PRESET_JOBS = {
+      backend: `Role: Junior Backend Engineer (Campus Placement Drive)
+Requirements:
+- Strong proficiency in Python, REST API development, and object-oriented programming (OOP).
+- Experience designing database schemas using MySQL or PostgreSQL.
+- Basic understanding of containerization using Docker and version control using Git/GitHub.
+- Familiarity with backend frameworks such as Flask or FastAPI or Node.js.
+- Strong fundamentals in Data Structures, Algorithms, and clean code principles.`,
+
+      sde: `Role: Full-Stack Software Development Engineer (SDE Fresher)
+Requirements:
+- Strong foundations in JavaScript, React.js, HTML5, CSS3, and modern frontend styling.
+- Backend proficiency with Node.js, Express, or Python Django.
+- Database knowledge with MongoDB and SQL (MySQL/PostgreSQL).
+- Familiarity with RESTful APIs, Git, and Agile/Scrum development methodologies.
+- Excellent problem-solving skills and computer science fundamentals (Data Structures & Algorithms).`,
+
+      data: `Role: Data Analyst & Business Intelligence Specialist
+Requirements:
+- Advanced SQL querying, joining, and relational database management.
+- Proficiency in Python using Pandas, NumPy, and data visualization libraries.
+- Experience with Tableau or Power BI dashboard creation and business reporting.
+- Solid understanding of statistical analysis, Excel modeling, and data cleaning.
+- Strong analytical and communication skills for presenting stakeholder insights.`,
+
+      cloud: `Role: Cloud & DevOps Associate
+Requirements:
+- Hands-on knowledge of Linux OS administration, shell scripting, and Git.
+- Containerization fundamentals using Docker and basic container orchestration.
+- Exposure to cloud service providers (AWS, Azure, or Google Cloud Platform).
+- Familiarity with CI/CD pipelines, networking basics, and cloud security concepts.
+- Eagerness to automate infrastructure and troubleshoot distributed applications.`,
+
+      qa: `Role: QA Automation & Test Engineer
+Requirements:
+- Good programming knowledge in Python or Java for automation scripts.
+- Practical experience using Selenium WebDriver or Cypress for automated UI testing.
+- API testing experience using Postman and REST API validation.
+- Knowledge of software testing life cycle (STLC), bug tracking, and test case documentation.
+- Strong attention to detail and analytical problem-solving skills.`
+    };
+
+    // Sample Tech Resume
+    const SAMPLE_RESUME = `ALOK HABRE
+Pune, Maharashtra | habre.alok@example.com | github.com/alokhabre | linkedin.com/in/alokhabre
+
+EDUCATION:
+Bachelor of Technology in Information Technology
+CGPA: 8.9 / 10.0 | Expected Graduation: 2027
+Relevant Coursework: Data Structures & Algorithms, Database Management Systems, Object-Oriented Programming, Operating Systems, Computer Networks.
+
+TECHNICAL SKILLS:
+- Languages: Python, Java, C++, JavaScript, SQL, HTML5, CSS3
+- Databases & Tools: MySQL, MongoDB, Git, GitHub, VS Code, Linux
+- Core Concepts: Data Structures, Algorithms, OOP, Database Design, Problem Solving
+
+ACADEMIC PROJECTS:
+1. Hospital Management System (Python & MySQL):
+   - Developed a desktop management system using Python and MySQL to automate patient admission records.
+   - Built relational database schemas with tables for 500+ patient entries and doctor appointments.
+   - Implemented user authentication and role-based access control for administrative staff.
+
+2. Student Academic Performance Tracker (Web Application):
+   - Created a responsive web portal using HTML, CSS, JavaScript, and Node.js for tracking student marks.
+   - Designed interactive dashboards displaying semester-wise CGPA trends and attendance metrics.
+   - Managed version control and team code merges using Git and GitHub.
+
+CERTIFICATIONS & CO-CURRICULAR:
+- Python for Data Science and Machine Learning Bootcamp
+- Active Member, Information Technology Student Association (ITSA)
+- 2nd Place in College Coding Hackathon (Problem Solving in C++)`;
+
+    // Global variables
+    let radarChartInstance = null;
+    let currentMatchedSkills = [];
+    let currentMissingSkills = [];
+
+    // STUDENT AUTHENTICATION STATE (with LocalStorage persistence for Placemently.com)
+    const DEFAULT_STUDENT = {
+      name: "Alok Habre",
+      prn: "25183013",
+      email: "habre.alok@example.com",
+      dept: "Information Technology (IT)",
+      classYear: "S.E. IT - Class B, Sec 3",
+      targetRole: "backend",
+      resumeText: SAMPLE_RESUME,
+      lastScore: 84
+    };
+
+    let currentUser = null;
+
+    // Toast Notifications
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const icon = type === 'success' ? 'fa-circle-check text-emerald-500' : 'fa-circle-info text-blue-500';
+      toast.className = 'pointer-events-auto flex items-center gap-2.5 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-xl border border-slate-700 transform transition-all duration-300 translate-y-3 opacity-0';
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-3', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // STUDENT AUTH MODAL FUNCTIONS (First Layer Gateway)
+    function openStudentLoginModal() {
+      const modal = document.getElementById('student-modal');
+      const card = document.getElementById('modal-card');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      card.classList.remove('scale-95');
+      card.classList.add('scale-100');
+    }
+
+    function closeStudentLoginModal() {
+      const modal = document.getElementById('student-modal');
+      const card = document.getElementById('modal-card');
+      card.classList.remove('scale-100');
+      card.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }, 150);
+    }
+
+    function switchModalTab(tab) {
+      const loginBtn = document.getElementById('tab-login-btn');
+      const regBtn = document.getElementById('tab-register-btn');
+      const loginForm = document.getElementById('form-login');
+      const regForm = document.getElementById('form-register');
+
+      if (tab === 'login') {
+        loginBtn.className = 'flex-1 py-3 text-center border-b-2 border-emerald-600 text-emerald-800 bg-white transition';
+        regBtn.className = 'flex-1 py-3 text-center border-b-2 border-transparent hover:text-emerald-700 transition';
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+      } else {
+        regBtn.className = 'flex-1 py-3 text-center border-b-2 border-emerald-600 text-emerald-800 bg-white transition';
+        loginBtn.className = 'flex-1 py-3 text-center border-b-2 border-transparent hover:text-emerald-700 transition';
+        regForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+      }
+    }
+
+    function handleStudentLogin(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('login-identifier').value.trim();
+      const name = identifier.includes('@') ? identifier.split('@')[0].replace('.', ' ') : "Alok Habre";
+      
+      currentUser = {
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        prn: identifier.includes('@') ? "25183013" : identifier,
+        email: identifier.includes('@') ? identifier : "habre.alok@example.com",
+        dept: "Information Technology (IT)",
+        classYear: "S.E. IT - Class B",
+        targetRole: "backend",
+        resumeText: SAMPLE_RESUME,
+        lastScore: 84
+      };
+
+      saveAndApplyUserSession(currentUser);
+      closeStudentLoginModal();
+      showToast(`Welcome back to Placemently.com, ${currentUser.name}!`);
+    }
+
+    function handleStudentRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const prn = document.getElementById('reg-prn').value.trim();
+      const classYear = document.getElementById('reg-class').value;
+      const email = document.getElementById('reg-email').value.trim();
+      const role = document.getElementById('reg-role').value;
+
+      currentUser = {
+        name: name,
+        prn: prn,
+        email: email,
+        dept: "Information Technology (IT)",
+        classYear: classYear,
+        targetRole: role,
+        resumeText: SAMPLE_RESUME,
+        lastScore: null
+      };
+
+      saveAndApplyUserSession(currentUser);
+      closeStudentLoginModal();
+      showToast(`Welcome to Placemently.com, ${currentUser.name}!`);
+    }
+
+    function quickDemoLogin() {
+      currentUser = Object.assign({}, DEFAULT_STUDENT);
+      currentUser.lastScore = 84;
+      saveAndApplyUserSession(currentUser);
+      closeStudentLoginModal();
+      showToast(`Signed in to Placemently.com as ${currentUser.name} (S.E. IT)`);
+    }
+
+    function logoutStudent() {
+      currentUser = null;
+      localStorage.removeItem('placemently_student_user');
+      localStorage.removeItem('placematch_student_user');
+      updateAuthUI();
+      showToast('Signed out of Placemently.com', 'info');
+      // Re-trigger the login popup when logged out
+      setTimeout(() => {
+        openStudentLoginModal();
+      }, 400);
+    }
+
+    function saveAndApplyUserSession(user) {
+      localStorage.setItem('placemently_student_user', JSON.stringify(user));
+      updateAuthUI();
+    }
+
+    function updateAuthUI() {
+      const navContainer = document.getElementById('nav-student-container');
+      const mobileContainer = document.getElementById('mobile-student-container');
+      const loggedOutPortal = document.getElementById('portal-logged-out');
+      const loggedInPortal = document.getElementById('portal-logged-in');
+      const heroGreeting = document.getElementById('hero-student-greeting');
+      const heroName = document.getElementById('hero-student-name');
+
+      if (currentUser) {
+        // Nav Desktop
+        navContainer.innerHTML = `
+          <div class="flex items-center gap-2">
+            <button onclick="document.getElementById('student-portal-section').scrollIntoView({behavior: 'smooth'})" class="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-950 text-xs px-2.5 py-1.5 rounded-xl font-bold transition">
+              <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <span class="max-w-[100px] sm:max-w-none truncate">${currentUser.name}</span>
+            </button>
+            <button onclick="logoutStudent()" title="Sign Out" class="text-xs text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+          </div>
+        `;
+
+        // Nav Mobile
+        mobileContainer.innerHTML = `
+          <div class="flex justify-between items-center bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                ${currentUser.name.charAt(0)}
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-800">${currentUser.name}</p>
+                <p class="text-[10px] text-emerald-800 font-mono">PRN: ${currentUser.prn}</p>
+              </div>
+            </div>
+            <button onclick="logoutStudent()" class="text-xs text-rose-600 font-bold px-2 py-1">Sign Out</button>
+          </div>
+        `;
+
+        // Portal Dashboard Section
+        loggedOutPortal.classList.add('hidden');
+        loggedInPortal.classList.remove('hidden');
+
+        document.getElementById('portal-avatar-initial').innerText = currentUser.name.charAt(0).toUpperCase();
+        document.getElementById('portal-student-name').innerText = currentUser.name;
+        document.getElementById('portal-student-prn').innerText = `PRN: ${currentUser.prn}`;
+        document.getElementById('portal-student-meta').innerText = `${currentUser.dept} • ${currentUser.classYear} • Target: ${currentUser.targetRole.toUpperCase()}`;
+        document.getElementById('portal-stat-domain').innerText = currentUser.targetRole.toUpperCase();
+        
+        if (currentUser.lastScore) {
+          document.getElementById('portal-stat-score').innerText = `${currentUser.lastScore}% ATS Match`;
+        }
+
+        // Hero Greeting
+        heroGreeting.classList.remove('hidden');
+        heroName.innerText = `Hi, ${currentUser.name.split(' ')[0]}!`;
+
+      } else {
+        // Logged Out Nav Desktop
+        navContainer.innerHTML = `
+          <button onclick="openStudentLoginModal()" class="text-xs bg-white hover:bg-emerald-50 text-emerald-700 font-bold px-3 py-2 rounded-xl transition border border-emerald-300 flex items-center gap-1.5 shadow-xs">
+            <i class="fa-solid fa-user-graduate"></i> Student Login
+          </button>
+        `;
+
+        // Logged Out Nav Mobile
+        mobileContainer.innerHTML = `
+          <button onclick="openStudentLoginModal()" class="w-full py-2 px-3 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2">
+            <i class="fa-solid fa-user-graduate"></i> Student Portal Sign In / Register
+          </button>
+        `;
+
+        // Portal Dashboard Section
+        loggedOutPortal.classList.remove('hidden');
+        loggedInPortal.classList.add('hidden');
+
+        // Hero Greeting
+        heroGreeting.classList.add('hidden');
+      }
+    }
+
+    function loadStudentProfileResume() {
+      if (currentUser && currentUser.resumeText) {
+        document.getElementById('resume-text').value = currentUser.resumeText;
+        document.getElementById('file-status').innerText = `✅ Loaded Profile Resume for ${currentUser.name}`;
+        updateResumeStats();
+        showToast(`Loaded stored resume for ${currentUser.name}`);
+        document.getElementById('analyzer').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // Toggle Mobile Navigation
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function scrollToAnalyzer() {
+      document.getElementById('analyzer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Preset Selection
+    function selectPresetJob(key) {
+      if (PRESET_JOBS[key]) {
+        document.getElementById('job-text').value = PRESET_JOBS[key];
+        showToast(`Loaded ${key.toUpperCase()} job profile`);
+      }
+    }
+
+    function quickSelectPreset(key) {
+      document.getElementById('job-presets').value = key;
+      selectPresetJob(key);
+    }
+
+    function loadSampleResume() {
+      document.getElementById('resume-text').value = SAMPLE_RESUME;
+      document.getElementById('file-status').innerText = '✅ Loaded Sample Tech Resume';
+      updateResumeStats();
+      showToast('Loaded Sample Technical Resume');
+    }
+
+    function loadSampleData() {
+      loadSampleResume();
+      document.getElementById('job-presets').value = 'backend';
+      selectPresetJob('backend');
+      runAnalysis();
+    }
+
+    function clearResumeText() {
+      document.getElementById('resume-text').value = '';
+      document.getElementById('file-status').innerText = '';
+      updateResumeStats();
+      showToast('Resume cleared');
+    }
+
+    function clearJobText() {
+      document.getElementById('job-text').value = '';
+      document.getElementById('job-presets').value = 'custom';
+      showToast('Job description cleared');
+    }
+
+    // Live Text Statistics
+    function updateResumeStats() {
+      const text = document.getElementById('resume-text').value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      const skills = extractKeywords(text).length;
+      document.getElementById('resume-stats-pill').innerText = `${words} words | ${skills} detected skills`;
+    }
+
+    document.getElementById('resume-text').addEventListener('input', updateResumeStats);
+
+    // Drag and Drop Visual Feedback
+    const dropZone = document.getElementById('drop-zone');
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragover-active');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover-active');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length) {
+        document.getElementById('resume-file').files = files;
+        handleFileUpload({ target: { files: files } });
+      }
+    });
+
+    // Client-side PDF Upload & Ingestion
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const statusElem = document.getElementById('file-status');
+      statusElem.innerText = `⏳ Parsing ${file.name}...`;
+
+      if (file.type === 'text/plain') {
+        const text = await file.text();
+        document.getElementById('resume-text').value = text;
+        statusElem.innerText = `✅ Loaded: ${file.name}`;
+        updateResumeStats();
+        showToast(`Loaded ${file.name}`);
+        return;
+      }
+
+      if (file.type === 'application/pdf') {
+        try {
+          const fileReader = new FileReader();
+          fileReader.onload = async function() {
+            const typedarray = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map(item => item.str).join(' ');
+              fullText += pageText + '\n\n';
+            }
+            document.getElementById('resume-text').value = fullText.trim();
+            statusElem.innerText = `✅ Parsed ${file.name} (${pdf.numPages} pages)`;
+            updateResumeStats();
+            showToast(`Extracted text from ${file.name}`);
+          };
+          fileReader.readAsArrayBuffer(file);
+        } catch (err) {
+          console.error(err);
+          statusElem.innerText = '❌ Error parsing PDF. Please paste resume text directly.';
+        }
+      }
+    }
+
+    // Keyword Extraction
+    function extractKeywords(text) {
+      if (!text) return [];
+      const lower = text.toLowerCase();
+      const matched = new Set();
+
+      for (const skill of SKILLS_TAXONOMY) {
+        const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+        if (regex.test(lower)) {
+          matched.add(skill);
+        }
+      }
+      return Array.from(matched);
+    }
+
+    // Run Full Analysis
+    function runAnalysis() {
+      const resumeText = document.getElementById('resume-text').value.trim();
+      const jobText = document.getElementById('job-text').value.trim();
+
+      if (!resumeText) {
+        showToast('Please upload or paste your resume text first.', 'info');
+        document.getElementById('resume-text').focus();
+        return;
+      }
+      if (!jobText) {
+        showToast('Please select or paste a target job description.', 'info');
+        document.getElementById('job-text').focus();
+        return;
+      }
+
+      const btn = document.getElementById('analyze-btn');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing Match...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        const resumeSkills = extractKeywords(resumeText);
+        const jobSkills = extractKeywords(jobText);
+
+        currentMatchedSkills = jobSkills.filter(s => resumeSkills.includes(s));
+        currentMissingSkills = jobSkills.filter(s => !resumeSkills.includes(s));
+
+        // Sub-score 1: Skills Ratio (40% Weight)
+        const skillsScore = jobSkills.length > 0 ? (currentMatchedSkills.length / jobSkills.length) * 100 : 70;
+
+        // Sub-score 2: Projects & Implementation (35% Weight)
+        const projectKeywords = ["project", "developed", "built", "implemented", "system", "database", "api", "application"];
+        const projectMatches = projectKeywords.filter(k => resumeText.toLowerCase().includes(k));
+        const projectsScore = Math.min(100, Math.round((projectMatches.length / projectKeywords.length) * 100 + (currentMatchedSkills.length * 4)));
+
+        // Sub-score 3: Education & Formatting (25% Weight)
+        let formatScore = 50;
+        if (/education|academic|bachelor|b\.tech|b\.e\./i.test(resumeText)) formatScore += 15;
+        if (/skills|technical/i.test(resumeText)) formatScore += 15;
+        if (/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(resumeText)) formatScore += 10;
+        if (/github\.com|linkedin\.com/.test(resumeText)) formatScore += 10;
+        formatScore = Math.min(100, formatScore);
+
+        // Weighted Overall Score
+        const finalAtsScore = Math.round(
+          (skillsScore * 0.40) + (projectsScore * 0.35) + (formatScore * 0.25)
+        );
+
+        // If user logged in, save last score
+        if (currentUser) {
+          currentUser.lastScore = finalAtsScore;
+          localStorage.setItem('placemently_student_user', JSON.stringify(currentUser));
+          const statScore = document.getElementById('portal-stat-score');
+          if (statScore) statScore.innerText = `${finalAtsScore}% ATS Match`;
+        }
+
+        // Display Results
+        displayResults(finalAtsScore, skillsScore, projectsScore, formatScore, currentMatchedSkills, currentMissingSkills, resumeText);
+
+        btn.innerHTML = '<i class="fa-solid fa-rotate text-emerald-950"></i> Re-Analyze Resume Match';
+        btn.disabled = false;
+
+        document.getElementById('results-container').classList.remove('hidden');
+        document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+
+        showToast(`Audit Completed: ${finalAtsScore}% ATS Score!`);
+
+        if (finalAtsScore >= 75) {
+          confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+        }
+      }, 350);
+    }
+
+    function displayResults(finalScore, skillsScore, projectsScore, formatScore, matched, missing, resumeText) {
+      // Score & Circle Gauge
+      document.getElementById('ats-score-number').innerText = `${finalScore}%`;
+      const circle = document.getElementById('score-circle');
+      circle.setAttribute('stroke-dasharray', `${finalScore}, 100`);
+
+      const verdict = document.getElementById('match-verdict');
+      const summary = document.getElementById('match-summary-text');
+
+      if (finalScore >= 80) {
+        circle.setAttribute('class', 'text-emerald-500 transition-all duration-1000 ease-out');
+        verdict.className = 'text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full mt-1 bg-emerald-100 text-emerald-800';
+        verdict.innerText = 'High Match (Placement Ready)';
+        summary.innerText = 'Excellent candidate alignment! Your skills and projects closely match company requirements.';
+      } else if (finalScore >= 60) {
+        circle.setAttribute('class', 'text-amber-500 transition-all duration-1000 ease-out');
+        verdict.className = 'text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full mt-1 bg-amber-100 text-amber-800';
+        verdict.innerText = 'Moderate Match';
+        summary.innerText = 'Good foundation. Add the missing critical skills to your projects to improve shortlisting chance.';
+      } else {
+        circle.setAttribute('class', 'text-rose-500 transition-all duration-1000 ease-out');
+        verdict.className = 'text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full mt-1 bg-rose-100 text-rose-800';
+        verdict.innerText = 'Low Match';
+        summary.innerText = 'Significant gaps detected for this specific role. Check our reverse role recommendations below!';
+      }
+
+      // Sub-scores
+      document.getElementById('skills-score-val').innerText = `${Math.round(skillsScore)}%`;
+      document.getElementById('skills-bar').style.width = `${Math.round(skillsScore)}%`;
+
+      document.getElementById('projects-score-val').innerText = `${Math.round(projectsScore)}%`;
+      document.getElementById('projects-bar').style.width = `${Math.round(projectsScore)}%`;
+
+      document.getElementById('format-score-val').innerText = `${Math.round(formatScore)}%`;
+      document.getElementById('format-bar').style.width = `${Math.round(formatScore)}%`;
+
+      // Render Skill Chips
+      renderSkillChips('matched', matched);
+      renderSkillChips('missing', missing);
+
+      // Radar Chart Breakdown
+      renderRadarChart(resumeText);
+
+      // Reverse Skill-to-Job Recommender
+      populateReverseRoleMatches(resumeText);
+
+      // Project Bridge Suggestions
+      populateProjectBridge(missing);
+
+      // Structural Checklist
+      populateChecklist(resumeText);
+    }
+
+    // Render Skill Chips
+    function renderSkillChips(type, skills) {
+      if (type === 'matched') {
+        document.getElementById('matched-count').innerText = skills.length;
+        const container = document.getElementById('matched-skills-chips');
+        container.innerHTML = '';
+        if (skills.length === 0) {
+          container.innerHTML = '<span class="text-xs text-slate-400 italic">No specific technical skills matched.</span>';
+        } else {
+          skills.forEach(skill => {
+            const chip = document.createElement('span');
+            chip.className = 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold text-xs px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-xs transition hover:bg-emerald-100';
+            chip.innerHTML = `<i class="fa-solid fa-check text-emerald-600 text-[10px]"></i> ${skill.toUpperCase()}`;
+            container.appendChild(chip);
+          });
+        }
+      } else {
+        document.getElementById('missing-count').innerText = skills.length;
+        const container = document.getElementById('missing-skills-chips');
+        container.innerHTML = '';
+        if (skills.length === 0) {
+          container.innerHTML = '<span class="text-xs text-emerald-700 font-semibold flex items-center gap-1"><i class="fa-solid fa-star text-amber-500"></i> Zero missing skills! Perfect skill set alignment.</span>';
+        } else {
+          skills.forEach(skill => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.onclick = () => injectSkillIntoTuner(skill);
+            chip.title = 'Click to upgrade a bullet point with this skill';
+            chip.className = 'bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-semibold text-xs px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-xs transition cursor-pointer group';
+            chip.innerHTML = `<i class="fa-solid fa-plus text-rose-500 text-[10px] group-hover:rotate-90 transition-transform"></i> ${skill.toUpperCase()}`;
+            container.appendChild(chip);
+          });
+        }
+      }
+    }
+
+    // Interactive Skill Search Filter
+    function filterSkills(type) {
+      if (type === 'matched') {
+        const query = document.getElementById('filter-matched').value.toLowerCase().trim();
+        const filtered = currentMatchedSkills.filter(s => s.toLowerCase().includes(query));
+        renderSkillChips('matched', filtered);
+      } else {
+        const query = document.getElementById('filter-missing').value.toLowerCase().trim();
+        const filtered = currentMissingSkills.filter(s => s.toLowerCase().includes(query));
+        renderSkillChips('missing', filtered);
+      }
+    }
+
+    // Inject Missing Skill Into STAR Tuner
+    function injectSkillIntoTuner(skill) {
+      document.getElementById('raw-bullet').value = `Worked on practical academic project utilizing ${skill.toUpperCase()} for data workflows.`;
+      upgradeBulletPoint();
+      document.getElementById('star-tuner').scrollIntoView({ behavior: 'smooth' });
+      showToast(`Tuned STAR bullet with ${skill.toUpperCase()}`);
+    }
+
+    // Render Radar Chart with Chart.js
+    function renderRadarChart(resumeText) {
+      const userSkills = extractKeywords(resumeText);
+
+      function calcDomainPct(keys) {
+        const count = keys.filter(k => userSkills.includes(k)).length;
+        return Math.min(100, Math.round((count / Math.max(1, keys.length)) * 140));
+      }
+
+      const langScore = calcDomainPct(DOMAIN_MAP.languages);
+      const dbScore = calcDomainPct(DOMAIN_MAP.databases);
+      const webScore = calcDomainPct(DOMAIN_MAP.web);
+      const toolsScore = calcDomainPct(DOMAIN_MAP.tools);
+      const csScore = calcDomainPct(DOMAIN_MAP.cs);
+
+      // Update Domain Summary Bars
+      document.getElementById('domain-score-lang').innerText = `${langScore}%`;
+      document.getElementById('domain-bar-lang').style.width = `${langScore}%`;
+
+      document.getElementById('domain-score-db').innerText = `${dbScore}%`;
+      document.getElementById('domain-bar-db').style.width = `${dbScore}%`;
+
+      document.getElementById('domain-score-web').innerText = `${webScore}%`;
+      document.getElementById('domain-bar-web').style.width = `${webScore}%`;
+
+      document.getElementById('domain-score-tools').innerText = `${toolsScore}%`;
+      document.getElementById('domain-bar-tools').style.width = `${toolsScore}%`;
+
+      document.getElementById('domain-score-cs').innerText = `${csScore}%`;
+      document.getElementById('domain-bar-cs').style.width = `${csScore}%`;
+
+      const ctx = document.getElementById('skillsRadarChart').getContext('2d');
+      if (radarChartInstance) {
+        radarChartInstance.destroy();
+      }
+
+      radarChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Languages', 'Databases', 'Web/APIs', 'DevOps/Tools', 'Core CS'],
+          datasets: [{
+            label: 'Candidate Readiness (%)',
+            data: [langScore, dbScore, webScore, toolsScore, csScore],
+            backgroundColor: 'rgba(16, 185, 129, 0.25)',
+            borderColor: '#059669',
+            pointBackgroundColor: '#047857',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#047857',
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              angleLines: { color: '#e2e8f0' },
+              grid: { color: '#f1f5f9' },
+              suggestedMin: 0,
+              suggestedMax: 100,
+              ticks: { display: false }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    // Populate Reverse Skill-to-Job Recommender
+    function populateReverseRoleMatches(resumeText) {
+      const container = document.getElementById('role-recommendations-grid');
+      container.innerHTML = '';
+
+      const roles = [
+        { key: 'backend', name: 'Junior Backend Engineer', tags: 'Python, REST API, MySQL, Git', jd: PRESET_JOBS.backend },
+        { key: 'sde', name: 'Full-Stack SDE (Fresher)', tags: 'React, Node.js, MongoDB, JavaScript', jd: PRESET_JOBS.sde },
+        { key: 'data', name: 'Data Analyst & BI Specialist', tags: 'SQL, Python, Pandas, Tableau', jd: PRESET_JOBS.data },
+        { key: 'cloud', name: 'Cloud & DevOps Associate', tags: 'Linux, Docker, AWS, Bash', jd: PRESET_JOBS.cloud }
+      ];
+
+      const userSkills = extractKeywords(resumeText);
+
+      roles.forEach(role => {
+        const roleSkills = extractKeywords(role.jd);
+        const matched = roleSkills.filter(s => userSkills.includes(s));
+        const score = Math.min(95, Math.max(30, Math.round((matched.length / Math.max(1, roleSkills.length)) * 100)));
+
+        let badgeClass = 'bg-slate-700 text-slate-300';
+        let matchLabel = 'Moderate';
+        let borderColor = 'border-slate-800 bg-slate-800/80';
+
+        if (score >= 80) {
+          badgeClass = 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
+          matchLabel = '🔥 Best Fit!';
+          borderColor = 'border-emerald-500/50 bg-emerald-950/40';
+        } else if (score >= 65) {
+          badgeClass = 'bg-teal-500/20 text-teal-300 border border-teal-400/30';
+          matchLabel = 'Good Match';
+        }
+
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-xl border ${borderColor} flex flex-col justify-between transition hover:scale-[1.02] shadow-sm`;
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs px-2.5 py-0.5 rounded-full font-bold ${badgeClass}">${matchLabel}</span>
+              <span class="text-xl font-black text-white">${score}%</span>
+            </div>
+            <h4 class="text-sm font-bold text-slate-100">${role.name}</h4>
+            <p class="text-[11px] text-slate-400 mt-1">${role.tags}</p>
+          </div>
+          <button onclick="switchTargetRole('${role.key}')" class="mt-4 w-full text-center text-xs py-2 px-3 bg-slate-700/80 hover:bg-emerald-600 text-white rounded-lg font-bold transition flex items-center justify-center gap-1">
+            Compare Against This Role &rarr;
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function switchTargetRole(roleKey) {
+      document.getElementById('job-presets').value = roleKey;
+      selectPresetJob(roleKey);
+      runAnalysis();
+      showToast(`Switched target role to ${roleKey.toUpperCase()}`);
+    }
+
+    function recalculateAllRoles() {
+      const resumeText = document.getElementById('resume-text').value;
+      if (resumeText) {
+        populateReverseRoleMatches(resumeText);
+        showToast('Re-scanned all campus placement roles');
+      }
+    }
+
+    // Contextual Project-Skill Bridge
+    function populateProjectBridge(missingSkills) {
+      const container = document.getElementById('project-bridge-suggestions');
+      container.innerHTML = '';
+
+      if (missingSkills.length === 0) {
+        container.innerHTML = '<p class="text-xs text-emerald-800 bg-emerald-50 p-3.5 rounded-xl border border-emerald-200 font-semibold"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Your resume already covers all critical competencies for this target job!</p>';
+        return;
+      }
+
+      const suggestions = [
+        {
+          skill: missingSkills[0] || 'REST API',
+          tip: `Integrate <strong>${(missingSkills[0] || 'REST API').toUpperCase()}</strong> into your academic project: Build and document clean REST endpoints connecting your database models to client interfaces.`
+        },
+        {
+          skill: missingSkills[1] || 'Docker',
+          tip: `Add <strong>${(missingSkills[1] || 'Docker').toUpperCase()}</strong> to your implementation stack: Containerize your app with a Dockerfile for automated local container setups.`
+        }
+      ];
+
+      suggestions.forEach(item => {
+        const box = document.createElement('div');
+        box.className = 'p-3 bg-emerald-50/50 border border-emerald-200 rounded-xl text-xs text-slate-700 leading-relaxed';
+        box.innerHTML = `<span class="font-bold text-emerald-800">Project Action:</span> ${item.tip}`;
+        container.appendChild(box);
+      });
+    }
+
+    // STAR Bullet Upgrader
+    const SAMPLE_BULLETS = [
+      "Did database work and wrote queries in SQL for patient records.",
+      "Built a website using HTML and JavaScript for student attendance.",
+      "Created an API using Python to connect with frontend.",
+      "Managed deployment on cloud servers using Docker containers."
+    ];
+    let sampleIdx = 0;
+
+    function loadSampleWeakBullet() {
+      sampleIdx = (sampleIdx + 1) % SAMPLE_BULLETS.length;
+      document.getElementById('raw-bullet').value = SAMPLE_BULLETS[sampleIdx];
+      upgradeBulletPoint();
+    }
+
+    function upgradeBulletPoint() {
+      const input = document.getElementById('raw-bullet').value.toLowerCase();
+      const outputElem = document.getElementById('upgraded-bullet-text');
+
+      if (input.includes('sql') || input.includes('database') || input.includes('patient')) {
+        outputElem.innerText = '"Architected relational MySQL database schemas with indexed queries across 10,000+ patient records, reducing search response latency by 35%."';
+      } else if (input.includes('website') || input.includes('html') || input.includes('javascript') || input.includes('attendance')) {
+        outputElem.innerText = '"Engineered a responsive student attendance portal using JavaScript and Node.js serving 450+ daily active users with 99.8% platform uptime."';
+      } else if (input.includes('api') || input.includes('python')) {
+        outputElem.innerText = '"Developed and secured 12+ RESTful API endpoints in Python Flask with JWT authentication, handling 1,200+ daily payload requests seamlessly."';
+      } else if (input.includes('docker') || input.includes('cloud') || input.includes('container')) {
+        outputElem.innerText = '"Containerized microservices architecture using Docker & multi-stage builds, cutting staging environment deployment times by 40%."';
+      } else {
+        outputElem.innerText = `"Engineered scalable ${input.trim()} using modern software design patterns, increasing throughput and optimizing execution performance by 30%."`;
+      }
+    }
+
+    function copyUpgradedBullet() {
+      const text = document.getElementById('upgraded-bullet-text').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('STAR bullet copied to clipboard!');
+      });
+    }
+
+    function copyFullReport() {
+      const score = document.getElementById('ats-score-number').innerText;
+      const matched = currentMatchedSkills.join(', ') || 'None';
+      const missing = currentMissingSkills.join(', ') || 'None';
+      const studentName = currentUser ? currentUser.name : 'Guest Student';
+      const prn = currentUser ? currentUser.prn : 'N/A';
+      const summary = `Placemently.com Audit Report\n--------------------------\nCandidate: ${studentName} (PRN: ${prn})\nOverall ATS Match Score: ${score}\nMatched Skills: ${matched}\nMissing Critical Skills: ${missing}\nPlatform: Placemently.com`;
+      navigator.clipboard.writeText(summary).then(() => {
+        showToast('Summary report copied to clipboard!');
+      });
+    }
+
+    // Structural Checklist
+    function populateChecklist(text) {
+      const container = document.getElementById('checklist-container');
+      container.innerHTML = '';
+
+      const items = [
+        { label: 'Contact Info & Email', pass: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text), note: 'Email detected' },
+        { label: 'GitHub / LinkedIn Links', pass: /github|linkedin/i.test(text), note: 'Portfolio links present' },
+        { label: 'Standard Section Headings', pass: /education|skills|projects/i.test(text), note: 'ATS-friendly delimiters' },
+        { label: 'Active Action Verbs', pass: /developed|built|architected|engineered|created/i.test(text), note: 'Action-oriented language' }
+      ];
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = `p-3.5 rounded-xl border ${item.pass ? 'bg-emerald-50/60 border-emerald-200' : 'bg-rose-50/60 border-rose-200'} flex items-start gap-2.5`;
+        div.innerHTML = `
+          <i class="fa-solid ${item.pass ? 'fa-check text-emerald-600' : 'fa-xmark text-rose-500'} mt-0.5 text-sm"></i>
+          <div>
+            <p class="text-xs font-bold ${item.pass ? 'text-emerald-950' : 'text-rose-950'}">${item.label}</p>
+            <p class="text-[10px] text-slate-500">${item.pass ? item.note : 'Needs improvement'}</p>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Check for saved student session on page load & show first-layer popup
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('job-presets').value = 'backend';
+      selectPresetJob('backend');
+
+      const saved = localStorage.getItem('placemently_student_user') || localStorage.getItem('placematch_student_user');
+      if (saved) {
+        try {
+          currentUser = JSON.parse(saved);
+        } catch(e) {
+          currentUser = null;
+        }
+      }
+      updateAuthUI();
+
+      // Automatically launch the Student Login & Signin popup as the entrance layer
+      setTimeout(() => {
+        openStudentLoginModal();
+      }, 300);
+    });
+  </script>
+</body>
+</html>
